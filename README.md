@@ -1,7 +1,35 @@
-# ponybar
+# Ponybar
 Simple statusbar generator for dwm.
 
+## Configuration
+As usual for the suckless tools ponibar, is configured directly in the source code. The configuration part of `ponybar.c` consists of three parts: configurarion defines, function declarations, optimization defines. Overall, you can add or remove functions providing certain mesures, and change their formatting.
+
+### Defines
+Most of define are useful, but be careful with MAX ones.
+
+* SEPARATOR - a string to put between different modules
+* SLEEP_TIME - status refresh interval
+* XXX_FORMAT - format string for corresponding modules
+
+### Functions
+This part contains function declarations. Use is as a list of available modules for the status bar. Also, add your own fuctions here. The point of interest is `functab[]` array, where you can put used modules are put.
+
+### Optimization
+We don't need unused code, so if not defined USE_MODULENAME the module function  replaced with a dummy function. So if you've added a function to `functab[]` array and got an empty string, add a required define.
+
 ## Build
+### Manual
 * gcc -o ponybar ponybar.c -O2 -s -lX11
 * mv ponybar /usr/local/bin
 * sed -i '/dwm/i \ponybar\&' ~/.xinitrc *optional*
+
+### Make
+Use `PREFIX=` to install to the destination other than /usr/local/bin.
+
+* make 
+* sudo make install
+
+### Arch Linux
+* makepkg
+* sudo pacman -U &lt;package_name&gt;
+
