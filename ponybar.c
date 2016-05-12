@@ -38,6 +38,8 @@
 #define HDD_FORMAT     "%s:%.1fG"
 #define RAM_FORMAT     "RAM:%ldM"
 #define CPU_FORMAT     "CPU:%d%%"
+#define KBD_FORMAT     "%s"
+#define KBD_LEN		3
 #define MAXTMPL        16
 #define MAXSTR         512
 #define MAXBUF         64
@@ -48,14 +50,16 @@ static const char * ram(void);
 static const char * cpu(void);
 static const char * disk_root(void);
 static const char * disk_home(void);
+static const char * kbd_lng(void);
 /*Append here your functions.*/
 static const char*(*const functab[])(void)={
-        ram, disk_root, date
+        ram, disk_root, kbd_lng, date
 };
 
 #define USE_RAM
 #define USE_DISK
 #define USE_DATE
+#define USE_KBD
 
 /*            Configuration end				*/
 
@@ -211,6 +215,55 @@ const char * cpu()
 #else
 static const char * cpu(void){ return ""; }
 #endif
+
+
+/* Keyboard layout indicator */
+#ifdef USE_KBD
+#include <X11/XKBlib.h>
+
+Display* display;
+char	*group_names[XkbNumKbdGroups];
+int	group_num = 0;
+
+static const char * kbd_lng(void)
+{
+
+	if (group_num==0) {
+    		int eventCode;
+		int errorReturn;
+		int major = XkbMajorVersion;
+		int minor = XkbMinorVersion;;
+		int reasonReturn;
+		display = XkbOpenDisplay( "", &eventCode, &errorReturn, &major, &minor, &reasonReturn);
+    		if (reasonReturn != XkbOD_Success)
+        		return "";
+		XkbDescRec* kbdDescPtr = XkbAllocKeyboard();
+    		if (kbdDescPtr == NULL)
+        		return "";
+
+		XkbGetNames(display, XkbGroupNamesMask, kbdDescPtr);
+		Atom *grpAtoms = kbdDescPtr->names->groups;
+		for (int i=0; i<XkbNumKbdGroups; ++i)
+			if (grpAtoms[i]!=0) group_num++;
+			else break;
+		XGetAtomNames(display, grpAtoms, group_num, group_names);
+		XkbFreeNames(kbdDescPtr, XkbGroupNamesMask, True);
+		for (int i=0;i<group_num&&KBD_LEN>0; ++i)
+			group_names[i][KBD_LEN]='\0';
+	}
+
+	XkbStateRec xkbState;
+    	XkbGetState(display, XkbUseCoreKbd, &xkbState);
+        return group_names[xkbState.group];
+
+}
+#else
+static const char * kbd_lng(void)
+{
+	return "";
+}
+#endif
+
 
 static void XSetRoot(const char *name)
 {
