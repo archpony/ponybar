@@ -40,6 +40,8 @@
 #define CPU_FORMAT     "CPU:%d%%"
 #define KBD_FORMAT     "%s"
 #define KBD_LEN		3
+#define IP_FORMAT      "IP:%s"
+#define IP_MISSED      "IP:down"
 #define MAXTMPL        16
 #define MAXSTR         512
 #define MAXBUF         64
@@ -51,6 +53,7 @@ static const char * cpu(void);
 static const char * disk_root(void);
 static const char * disk_home(void);
 static const char * kbd_lng(void);
+static const char * ip_eth(void);
 /*Append here your functions.*/
 static const char*(*const functab[])(void)={
         ram, disk_root, kbd_lng, date
@@ -259,6 +262,50 @@ static const char * kbd_lng(void)
 }
 #else
 static const char * kbd_lng(void)
+{
+	return "";
+}
+#endif
+
+/* IP address */
+#ifdef USE_IP
+#include <netdb.h>
+#include <ifaddrs.h>
+static const char *ip_addr(char *iface)
+{
+	struct ifaddrs *ifaddr;
+	int  s;
+	static char host[NI_MAXHOST];
+	static char ip[MAXBUF];
+
+	if (getifaddrs(&ifaddr) == -1) {
+		return "n/a";
+	}
+	strncpy(ip, IP_MISSED, MAXBUF);
+
+	for(struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+		if((ifa->ifa_addr->sa_family!=AF_INET)) continue;
+		if (ifa->ifa_addr == NULL) continue;
+		s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+		if (s != 0) {
+			strncpy(ip, gai_strerror(s), MAXBUF);
+			break;
+		}
+		if (strcmp(iface,ifa->ifa_name)==0) {
+			snprintf(ip, MAXBUF, IP_FORMAT, host);
+			break;
+		}
+	}
+	freeifaddrs(ifaddr);
+	return ip;
+}
+
+static const char *ip_eth(void)
+{
+	return ip_addr("ens33");
+}
+#else
+static const char * ip_eth(void)
 {
 	return "";
 }
