@@ -1,7 +1,7 @@
 .PHONY:install uninstall
 CC=gcc
 CFLAGS=-O2 -s 
-LDFLAGS=-lX11
+LDFLAGS=-lX11 -lasound
 
 PREFIX=/usr/local/bin
 

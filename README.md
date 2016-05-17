@@ -20,7 +20,7 @@ We don't need unused code, so if not defined USE_MODULENAME the module function 
 
 ## Build
 ### Manual
-* gcc -o ponybar ponybar.c -O2 -s -lX11
+* gcc -o ponybar ponybar.c -O2 -s -lX11 -lasound
 * mv ponybar /usr/local/bin
 * sed -i '/dwm/i \ponybar\&' ~/.xinitrc *optional*
 
