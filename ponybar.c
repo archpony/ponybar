@@ -43,6 +43,8 @@
 #define IP_FORMAT      "IP:%s"
 #define IP_MISSED      "IP:down"
 #define ETH_NAME       "ens33"
+#define SND_FORMAT     "VOL:%d%%"
+#define SND_CARD       "default"
 #define MAXTMPL        16
 #define MAXSTR         512
 #define MAXBUF         64
@@ -55,6 +57,7 @@ static const char * disk_root(void);
 static const char * disk_home(void);
 static const char * kbd_lng(void);
 static const char * ip_eth(void);
+static const char * snd_vol(void);
 /*Append here your functions.*/
 static const char*(*const functab[])(void)={
         ram, disk_root, kbd_lng, date
@@ -313,7 +316,44 @@ static const char * ip_eth(void)
 }
 #endif
 
+/* Sound volume (alsa) */
+#ifdef USE_SND
+#include <alsa/asoundlib.h>
 
+static const char * snd_vol(void)
+{
+	long			volume   = 0;
+	long 			vol_min  = -1, vol_max = -1;
+	snd_mixer_t 		*h_mixer = NULL;
+	snd_mixer_elem_t	*e_master= NULL;
+	const char		*selem_name = "Master";
+	static char		snd_vol[MAXBUF];
+
+	snd_mixer_open(&h_mixer, 0);
+	snd_mixer_attach(h_mixer, SND_CARD);
+	snd_mixer_selem_register(h_mixer, NULL, NULL);
+	snd_mixer_load(h_mixer);
+
+	snd_mixer_selem_id_t 	*sid;
+	snd_mixer_selem_id_alloca(&sid);
+	snd_mixer_selem_id_set_index(sid, 0);
+	snd_mixer_selem_id_set_name(sid, selem_name);
+
+	e_master = snd_mixer_find_selem(h_mixer, sid);
+	snd_mixer_selem_get_playback_volume_range(e_master, &vol_min, &vol_max);
+        snd_mixer_selem_get_playback_volume (e_master, SND_MIXER_SCHN_MONO, &volume);
+	snd_mixer_close(h_mixer);
+
+	snprintf(snd_vol, MAXBUF, SND_FORMAT, (volume * 100)/vol_max );
+
+	return snd_vol;
+}
+#else
+static const char * snd_vol(void)
+{
+        return "";
+}
+#endif
 static void XSetRoot(const char *name)
 {
         Display *display;
