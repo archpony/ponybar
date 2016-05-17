@@ -11,6 +11,7 @@ Most of define are useful, but be careful with MAX ones.
 * SLEEP_TIME - status refresh interval
 * XXX_FORMAT - format string for corresponding modules
 * KBD_LEN - number of symbols to represent current keyboard layout. Use negative value to display full name.
+* BAT_* - you need to inspect `/sys/class/power_supply/` directory to correct default values. Current and full file are placed in `BAT_NAME` subdirectory.
 
 ### Functions
 This part contains function declarations. Use is as a list of available modules for the status bar. Also, add your own fuctions here. The point of interest is `functab[]` array, where you can put used modules are put.
