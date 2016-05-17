@@ -45,6 +45,10 @@
 #define ETH_NAME       "ens33"
 #define SND_FORMAT     "VOL:%d%%"
 #define SND_CARD       "default"
+#define BAT_FORMAT     "BAT:%d%%"
+#define BAT_NAME       "BAT1"
+#define BAT_FULL       "charge_full"
+#define BAT_CURRENT    "charge_now"
 #define MAXTMPL        16
 #define MAXSTR         512
 #define MAXBUF         64
@@ -58,6 +62,7 @@ static const char * disk_home(void);
 static const char * kbd_lng(void);
 static const char * ip_eth(void);
 static const char * snd_vol(void);
+static const char * bat(void);
 /*Append here your functions.*/
 static const char*(*const functab[])(void)={
         ram, disk_root, kbd_lng, date
@@ -354,6 +359,44 @@ static const char * snd_vol(void)
         return "";
 }
 #endif
+
+/* Battery charge */
+#ifdef USE_BAT
+#define BPATH    "/sys/class/power_supply/"
+#define MKFILE(x,y,z) x "/" y "/" z
+long full_charge = -1;
+static const char * bat(void)
+{
+	FILE 		*f;
+	long 		current_charge = 0;
+	static char	bat_charge[MAXBUF];
+
+	if (full_charge==-1) {
+		if (!(f = fopen(MKFILE(BPATH, BAT_NAME, BAT_FULL), "r"))) {
+			return "N/A";
+		}
+		fscanf(f, "%ld", &full_charge);
+		fclose(f);
+	}
+
+	if (!(f = fopen(MKFILE(BPATH, BAT_NAME, BAT_CURRENT), "r"))) {
+		return "N/A";
+	}
+	fscanf(f, "%ld", &current_charge);
+	fclose(f);
+
+	snprintf(bat_charge, MAXBUF, BAT_FORMAT, (current_charge * 100) / full_charge);
+
+	return bat_charge;
+}
+#else
+static const char * bat(void)
+{
+        return "";
+}
+#endif
+
+
 static void XSetRoot(const char *name)
 {
         Display *display;
