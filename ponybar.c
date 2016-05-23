@@ -32,7 +32,7 @@
 
 /*               Configuration is HERE			*/
 
-#define VERSION        "0.2"
+#define VERSION        "0.3"
 #define SEPARATOR      " | "
 #define TIME_FORMAT    "%Y-%m-%d %H:%M"
 #define HDD_FORMAT     "%s:%.1fG"
@@ -75,9 +75,6 @@ static const char*(*const functab[])(void)={
 
 /*            Configuration end				*/
 
-#ifdef USE_CPU
-static long double cpu_first[4], cpu_last[4];
-#endif
 static void XSetRoot(const char *name);
 
 int main(void){
@@ -89,11 +86,6 @@ int main(void){
 		return 1;	/*This should not happen*/
 	}
 
-#ifdef USE_CPU
-	//cpu proc init
-	cpu_first[0] = -1;
-#endif
-    
 	char template[MAXTMPL];
 	snprintf(template, MAXTMPL, "%s%%s", SEPARATOR);
 	for(;;) {
@@ -193,6 +185,8 @@ static const char * disk_home()
 
 /* cpu percentage */
 #ifdef USE_CPU
+static long double cpu_first[4] = {-1.0l, -1.0l, -1.0l, -1.0l};
+static long double cpu_last[4];
 const char * cpu()
 {
 	int         perc;
