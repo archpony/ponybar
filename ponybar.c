@@ -75,16 +75,22 @@ static const char*(*const functab[])(void)={
 
 /*            Configuration end				*/
 
-static void XSetRoot(const char *name);
 
 int main(void){
 	char status[MAXSTR];
 	int  ret  = 0;       //placeholder for static part
 	char *off = status; //placeholder for some constant part
 	if (off>=(status + MAXSTR)) {
-		XSetRoot(status);
+                fprintf(stderr, "String too long!\n");
 		return 1;	/*This should not happen*/
 	}
+
+        Display *display;
+
+        if (( display = XOpenDisplay(0x0)) == NULL ) {
+                fprintf(stderr, "[ponybar] cannot open display!\n");
+                exit(1);
+        }
 
 	char template[MAXTMPL];
 	snprintf(template, MAXTMPL, "%s%%s", SEPARATOR);
@@ -102,9 +108,11 @@ int main(void){
 			if(sta>=(status+MAXSTR))/*When snprintf has to resort to truncating a string it will return the length as if it were not truncated.*/
 				break;
 		}
-		XSetRoot(status);
+		XStoreName(display, DefaultRootWindow(display), status);
+	        XSync(display, 0);
 		sleep(SLEEP_TIME);
 	}
+	XCloseDisplay(display);
 	return 0;
 }
 
@@ -390,19 +398,4 @@ static const char * bat(void)
 }
 #endif
 
-
-static void XSetRoot(const char *name)
-{
-        Display *display;
-
-        if (( display = XOpenDisplay(0x0)) == NULL ) {
-                fprintf(stderr, "[ponybar] cannot open display!\n");
-                exit(1);
-        }
-
-        XStoreName(display, DefaultRootWindow(display), name);
-        XSync(display, 0);
-
-        XCloseDisplay(display);
-}
 
