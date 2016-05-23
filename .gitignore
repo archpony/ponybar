@@ -1,4 +1,5 @@
 ponybar
 *.swp
+*.o
 ponybar-0.2-1-i686.pkg.tar.xz
 src
