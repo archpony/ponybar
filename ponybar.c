@@ -43,7 +43,7 @@
 #define IP_FORMAT      "IP:%s"
 #define IP_MISSED      "IP:down"
 #define ETH_NAME       "ens33"
-#define SND_FORMAT     "VOL:%d%%"
+#define SND_FORMAT     "VOL:%ld%%"
 #define SND_CARD       "default"
 #define BAT_FORMAT     "BAT:%d%%"
 #define BAT_NAME       "BAT1"
@@ -63,9 +63,21 @@ static const char * kbd_lng(void);
 static const char * ip_eth(void);
 static const char * snd_vol(void);
 static const char * bat(void);
-/*Append here your functions.*/
-static const char*(*const functab[])(void)={
-        ram, disk_root, kbd_lng, date
+
+typedef const char *(*infofunc)(void);
+struct sbelem {
+	infofunc 	func;
+	int	 	runs;
+	const char	*res;
+};
+
+/*   Append here your functions.     */
+static struct sbelem functab[] = {
+/*    Function     Run every X loop  */
+	{ ram,		 5 },
+	{ disk_root,	60 },
+	{ kbd_lng,	 1 },
+	{ date,		 1 }
 };
 
 #define USE_RAM
@@ -78,6 +90,7 @@ static const char*(*const functab[])(void)={
 
 int main(void){
 	char status[MAXSTR];
+	int i;
 	int  ret  = 0;       //placeholder for static part
 	char *off = status; //placeholder for some constant part
 	if (off>=(status + MAXSTR)) {
@@ -91,18 +104,27 @@ int main(void){
                 fprintf(stderr, "[ponybar] cannot open display!\n");
                 exit(1);
         }
+	size_t tabsize = sizeof(functab)/sizeof(functab[0]);
+	int max_loop = 0;
+	for (i = 0; i< tabsize; ++i) {
+		if (functab[i].runs>max_loop) max_loop = functab[i].runs;
+		functab[i].res = functab[i].func();
+	}
 
 	char template[MAXTMPL];
 	snprintf(template, MAXTMPL, "%s%%s", SEPARATOR);
+	int loops = 1;
 	for(;;) {
-		int   left=sizeof(status)-ret,i;
-		char* sta=off;
-		for(i = 0; i<sizeof(functab)/sizeof(functab[0]); ++i ) {
+		int   left = sizeof(status) - ret;
+		char* sta  = off;
+		if (loops>max_loop) loops = 1;
+		for(i = 0; i<tabsize; ++i ) {
 			int ret;
+			if (loops % functab[i].runs == 0) functab[i].func();
 			if (i!=0)
-				ret = snprintf(sta, left, template, functab[i]());
+				ret = snprintf(sta, left, template, functab[i].res);
 			else
-				ret=snprintf(sta,left,"%s",functab[i]());
+				ret = snprintf(sta, left, "%s",     functab[i].res);
 			sta+=ret;
 			left-=ret;
 			if(sta>=(status+MAXSTR))/*When snprintf has to resort to truncating a string it will return the length as if it were not truncated.*/
@@ -111,6 +133,7 @@ int main(void){
 		XStoreName(display, DefaultRootWindow(display), status);
 	        XSync(display, 0);
 		sleep(SLEEP_TIME);
+		loops++;
 	}
 	XCloseDisplay(display);
 	return 0;
