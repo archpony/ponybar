@@ -2,7 +2,7 @@
 Simple statusbar generator for dwm.
 
 ## Configuration
-As usual for the suckless tools, ponibar is configured directly in the source code. The configuration part of `ponybar.c` consists of three parts: configurarion defines, function declarations, optimization defines. Overall, you can add or remove functions providing certain mesures, and change their formatting.
+As usual for the suckless tools, ponybar is configured directly in the source code. The configuration part of `ponybar.c` consists of three sections: configuration defines, function declarations, optimization defines. Overall, you can add or remove functions providing certain measures, and change their formatting.
 
 ### Defines
 Most of defines are useful, but be careful with MAX ones.
@@ -14,7 +14,7 @@ Most of defines are useful, but be careful with MAX ones.
 * BAT_* - you need to inspect `/sys/class/power_supply/` directory to correct default values. Current and full file are placed in `BAT_NAME` subdirectory.
 
 ### Functions
-This part contains function declarations. Use it as a list of available modules for the status bar. Also, add your own fuctions here. The point of interest is `functab[]` array, where you can put used modules are put.
+This part contains function declarations. Use it as a list of available modules for the status bar. Also, add your own functions here. The point of interest is `functab[]` array, where you can put used modules. Each element in the array is defined by the pair of values: first, a name of a function, second, is a number that shows how frequent this function is to call. When the `SLEEP_TIME` define is set to 1, this number is roughly equivalent to the time between calls in seconds.
 
 ### Optimization
 We don't need unused code, so if not defined USE_MODULENAME the module function is replaced with a dummy function. So if you've added a function to `functab[]` array and got an empty string, add a required define.
