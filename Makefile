@@ -9,7 +9,7 @@ TARGET=ponybar
 SOURCE=$(TARGET:=.c)
 
 $(TARGET): $(SOURCE)
-	$(CC) -o $(TARGET) $(CFLAGS) $(LDFLAGS) $(SOURCE)
+	$(CC) -o $(TARGET) $(CFLAGS) $(SOURCE) $(LDFLAGS)
 
 install:
 	install $(TARGET) $(PREFIX)
